@@ -307,13 +307,40 @@
    P-VSM Visual Flow Exact UI Clone
    ========================================================================== */
 
-.pvsm-wrapper {
-    width: 100%;
-    min-height: calc(100vh - 70px);   /* Adjust 70px if your navbar height is different */
-    padding: 20px;
-    box-sizing: border-box;
-    overflow: auto;
-    background: #f5f7fb;
+.pvsm-wrapper{
+    width:100%;
+    height:calc(100vh - 70px);
+
+    display:flex;
+    flex-direction:column;
+
+    background:#f5f7fb;
+
+    overflow:hidden;
+
+    box-sizing:border-box;
+}
+
+.pvsm-viewport{
+    flex:1;
+
+    overflow:hidden;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:flex-start;
+
+    position:relative;
+}
+
+.pvsm-stage{
+    position:relative;
+
+    transform-origin:top center;
+
+    will-change:transform;
 }
 
 
@@ -389,17 +416,15 @@
 .pvsm-btn-load:hover { background: #1d4ed8; }
 
 .pvsm-canvas{
-    position: relative;
+    position:relative;
 
-    width: 100%;
-    min-height: 750px;
+    width:1700px;
 
-    padding: 20px;
+    height:900px;
 
-    overflow-x: auto;
-    overflow-y: hidden;
+    padding:20px;
 
-    box-sizing: border-box;
+    box-sizing:border-box;
 }
 
 .pvsm-flow-svg{
@@ -1160,42 +1185,4 @@ display:flex;
 .transit-left .field-input:focus{
   outline:none;
   border-color:#3b82f6;
-}
-
-/* ==========================================
-   RESPONSIVE
-========================================== */
-
-@media (max-width: 1440px){
-
-    .pvsm-card{
-        width:170px;
-    }
-
-    .pvsm-grid{
-
-        column-gap:16px;
-
-        row-gap:55px;
-
-        grid-template-columns:
-            repeat(7,170px);
-    }
-
-}
-
-@media (max-width: 1280px){
-
-    .pvsm-card{
-        width:155px;
-    }
-
-    .pvsm-grid{
-
-        grid-template-columns:
-            repeat(7,155px);
-
-        column-gap:12px;
-    }
-
 }

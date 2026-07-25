@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import './Afterchannel.css';
 import ProcessCard from "../components/ProcessCard/ProcessCard";
 import { processData } from "../data/processData";
@@ -113,6 +113,13 @@ const Afterchannel = () => {
   const [tbStdQty, setTbStdQty] = useState(0);
   const [tbFinalQty, setTbFinalQty] = useState(0);
 
+  const viewportRef = useRef(null);
+
+  const [pvsmScale, setPvsmScale] = useState(1);
+
+  const DESIGN_WIDTH = 1700;
+  const DESIGN_HEIGHT = 900;
+
   useEffect(() => {
     fetchMasterData();
     fetchLedgers();
@@ -127,6 +134,29 @@ const Afterchannel = () => {
   useEffect(() => {
   localStorage.setItem("activeTab", activeTab);
   }, [activeTab]);
+
+  useEffect(() => {
+    function updateScale() {
+      if (!viewportRef.current) return;
+
+      const viewport = viewportRef.current.getBoundingClientRect();
+
+      const scaleX = viewport.width / DESIGN_WIDTH;
+      const scaleY = viewport.height / DESIGN_HEIGHT;
+
+      const scale = Math.min(scaleX, scaleY, 1);
+
+      setPvsmScale(scale);
+    }
+
+    updateScale();
+
+    window.addEventListener("resize", updateScale);
+
+    return () => {
+      window.removeEventListener("resize", updateScale);
+    };
+  }, []);
  
   const fetchMasterData = async () => {
     try {
@@ -991,7 +1021,6 @@ const NodeCard = ({
               <span className="metric-unit">
                   PCS
               </span>
-
           </div>
       )}
 
@@ -1022,55 +1051,61 @@ const NodeCard = ({
           <div className="pvsm-top-controls">
              <div className="control-group">
                <label>MO Type</label>
-              <select
-                  value={pvsmMo}
-                  onChange={(e) => setPvsmMo(e.target.value)}
-              >
+                <select
+                    value={pvsmMo}
+                    onChange={(e) => setPvsmMo(e.target.value)}
+                >
                   <option value="">Select MO</option>
                   {dynamicMosList.map(mo => (
                       <option key={mo} value={mo}>{mo}</option>
                   ))}
-              </select>
+                </select>
              </div>
-          
-     <div className="control-group">
-        <label>Variant</label>
+              <div className="control-group">
+                  <label>Variant</label>
 
-      <select
-        value={pvsmType}
-        onChange={(e) => setPvsmType(e.target.value)}
-      >
-        <option value="">Select Variant</option>
+                  <select
+                    value={pvsmType}
+                    onChange={(e) => setPvsmType(e.target.value)}
+                  >
+                    <option value="">Select Variant</option>
 
-        {dynamicVariantsList.map((variant) => (
-          <option key={variant} value={variant}>
-            {variant}
-          </option>
-        ))}
-      </select>
+                    {dynamicVariantsList.map((variant) => (
+                      <option key={variant} value={variant}>
+                        {variant}
+                      </option>
+                    ))}
+                  </select>
 
-      <datalist id="variants-list">
-        {dynamicVariantsList.map(v => (
-          <option key={v} value={v} />
-        ))}
-      </datalist>
-      </div>
+                    <datalist id="variants-list">
+                      {dynamicVariantsList.map(v => (
+                        <option key={v} value={v} />
+                      ))}
+                    </datalist>
+              </div>
 
-    <div className="control-group">
-        <label>Filter</label>
-        <select>
-            <option>Select Filter</option>
-            <option>IR</option>
-            <option>OR</option>
-            <option>Bearing</option>
-        </select>
-    </div>
+              <div className="control-group">
+                    <label>Filter</label>
+                    <select>
+                        <option>Select Filter</option>
+                        <option>IR</option>
+                        <option>OR</option>
+                        <option>Bearing</option>
+                    </select>
+                </div>
 
-    <button onClick={handleLoadFlow}>
-        ▶ Load Flow
-    </button>
-</div>
-            <div className="pvsm-canvas">
+                <button onClick={handleLoadFlow}>
+                    ▶ Load Flow
+                </button>
+          </div>
+          <div className="pvsm-viewport" ref={viewportRef}>
+           <div
+                className="pvsm-stage"
+                style={{
+                    transform: `scale(${pvsmScale})`
+                }}
+            >
+              <div className="pvsm-canvas">
                   <Flow />
                   <div className="pvsm-grid">
                     
@@ -1125,7 +1160,9 @@ const NodeCard = ({
                     </div>
 
                 </div>
+             </div>
             </div>
+          </div>
         </div>
     );
   };

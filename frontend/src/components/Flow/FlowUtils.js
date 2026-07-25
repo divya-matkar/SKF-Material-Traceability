@@ -294,12 +294,12 @@ function drawBearingToPacking(fromRect, toRect) {
 function drawChannelToCps(fromRect, toRect) {
 
   const start = {
-    x: fromRect.left + fromRect.width * 0.30, // left side of Channel
+    x: fromRect.left + fromRect.width * 0.38, // left side of Channel
     y: fromRect.bottom
   };
 
   const end = {
-    x: toRect.left + toRect.width * 0.45, // right side of CPS
+    x: toRect.left + toRect.width * 0.58, // right side of CPS
     y: toRect.top
   };
 
@@ -315,11 +315,13 @@ function drawChannelToCps(fromRect, toRect) {
  
 function drawCpsToChannel(fromRect, toRect) {
 
-  const start = top(fromRect);
+  const start = {
+    x: fromRect.left + fromRect.width * 0.50, // left side of CPS
+    y: fromRect.top
+  };
 
-  // Shift entry point to LEFT side of Channel card
   const end = {
-    x: toRect.left + toRect.width * 0.35,
+    x: toRect.left + toRect.width * 0.32, // right side of Channel
     y: toRect.bottom
   };
 
@@ -380,7 +382,7 @@ function drawDisassemblyToChannel(fromRect, toRect) {
 function drawChannelToRework(fromRect, toRect) {
 
   const start = {
-    x: fromRect.left + fromRect.width * 0.72,
+    x: fromRect.left + fromRect.width * 0.69,
     y: fromRect.bottom
   };
 
@@ -402,12 +404,12 @@ function drawChannelToRework(fromRect, toRect) {
 function drawReworkToChannel(fromRect, toRect) {
 
   const start = {
-    x: fromRect.left + fromRect.width * 0.35,
+    x: fromRect.left + toRect.width * 0.50,
     y: fromRect.top
   };
 
   const end = {
-    x: toRect.left + fromRect.width * 0.65,
+    x: toRect.left + toRect.width * 0.75,
     y: toRect.bottom
   };
 
@@ -481,11 +483,14 @@ function drawScrapMiddle(fromRect, toRect) {
 function drawScrapVertical(fromRect, toRect) {
 
   const start = bottom(fromRect);
-  const end = top(toRect);
+
+  const end = {
+    x: start.x,
+    y: top(toRect).y
+  };
 
   return buildRoundedPath([
     start,
-    { x: start.x, y: end.y - 30 },
     end,
   ]);
 }
