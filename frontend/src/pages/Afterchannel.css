@@ -456,7 +456,7 @@
         minmax(180px,220px);
 
     column-gap: clamp(20px,2vw,35px);
-
+    
     row-gap: clamp(60px,8vh,90px);
 
     grid-template-rows:
