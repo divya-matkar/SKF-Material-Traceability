@@ -782,187 +782,100 @@ display:flex;
     stroke-linejoin:round;
 }
 
-.channel-layout{
-  display:flex;
-  gap:24px;
-  align-items:flex-start;
-  width:100%;
-}
-
-.channel-left{
-  flex:1;
-  min-width:0;
-}
-
-.channel-right{
-  width:320px;
-  min-width:320px;
-  flex-shrink:0;
-}
-
-.qty-panel{
-  width:100%;
-  background:#fff;
-  border:1px solid #e5e7eb;
-  border-radius:12px;
-  padding:20px;
-
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:16px;
-
-  height:fit-content;
-}
-
-.qty-section{
-  text-align:center;
-}
-
-.qty-divider{
-  border:none;
-  border-top:1px solid #e5e7eb;
-  margin:0;
-}
-
-.scale-bottom{
-  width:100%;
-  margin-top:20px;
-
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-
-  border-top:1px solid #e5e7eb;
-  padding-top:20px;
-}
-
-.channel-screen{
-  display:flex;
-  gap:24px;
-  align-items:flex-start;
-  width:100%;
-}
-
-.channel-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:18px;
-}
-
-.channel-left .field-label{
-  font-size:13px;
-  font-weight:700;
-  color:#374151;
-  margin-bottom:6px;
-  text-transform:uppercase;
-}
-
-.channel-left .field-group{
-  display:flex;
-  flex-direction:column;
-}
-
-.channel-left .field-input{
-  height:42px;
-  border:1px solid #dbe4f0;
-  border-radius:8px;
-  padding:0 12px;
-  font-size:14px;
-  background:#fff;
-}
-
-.channel-section-title{
-  margin:24px 0 14px;
-  font-size:18px;
-  font-weight:700;
-}
 
 .tare-cards{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:16px;
 }
+/* =======================================
+   Production Tracking UI
+======================================= */
 
-.tare-card{
-  border:1px solid #ddd;
-  border-radius:10px;
-  padding:12px;
-  text-align:center;
-  background:#fff;
+.production-container{
+    width:100%;
+    margin-top:25px;
 }
 
-.tare-value{
-  font-size:28px;
-  font-weight:700;
-  margin:10px 0;
+.production-card{
+    background:#fff;
+    border-radius:12px;
+    border:1px solid #dfe6ee;
+    padding:22px;
+    box-shadow:0 3px 10px rgba(0,0,0,.05);
 }
 
-.qty-title{
-  font-size:16px;
-  font-weight:600;
-  text-align:center;
-  width:100%;
-  margin-top:0;
+.card-header{
+    margin-bottom:20px;
 }
 
-.qty-number{
-  font-size:44px;
-  font-weight:700;
-  text-align:center;
-  width:100%;
-  margin:8px 0 20px;
+.card-header h3{
+    margin:0;
+    font-size:22px;
+    font-weight:700;
+    color:#1f2937;
 }
 
-.qty-number.big{
-  font-size:52px;
-  text-align:center;
+.card-body{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+}
+
+.form-row{
+    display:flex;
+    gap:25px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+    flex:1;
+}
+
+.form-group label{
+    margin-bottom:8px;
+    font-size:14px;
+    font-weight:600;
+    color:#374151;
+}
+
+.form-group input,
+.form-group select{
+    height:45px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    padding:0 12px;
+    font-size:15px;
+    outline:none;
+}
+
+.form-group input:focus,
+.form-group select:focus{
+    border-color:#2563eb;
+}
+
+.button-row{
+    margin-top:25px;
+    display:flex;
+    justify-content:flex-end;
+}
+
+.create-mo-btn{
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:12px 24px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.create-mo-btn:hover{
+    background:#1d4ed8;
 }
  
-.channel-section{
-  margin-top: 24px;
-}
-
-.channel-section-header{
-  font-size: 18px;
-  font-weight: 700;
-  color: #1F2937;
-  padding-bottom: 10px;
-  margin-bottom: 18px;
-  border-bottom: 2px solid #E5E7EB;
-}
-
-.channel-section:first-child{
-  margin-top: 0;
-}
-
-.channel-section-card{
-  background:#fff;
-  border:1px solid #e5e7eb;
-  border-radius:12px;
-  padding:16px;
-  margin-bottom:20px;
-  box-shadow:0 2px 8px rgba(0,0,0,.05);
-}
-
-.channel-full-width{
-  grid-column:1 / span 2;
-}
-
-.channel-section-title{
-  margin:0 0 18px;
-  padding-bottom:10px;
-  border-bottom:1px solid #e5e7eb;
-  font-size:18px;
-  font-weight:700;
-}
-
-.title-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    width:100%;
-}
 
 .delta-icon{
     color:#F4C430;
