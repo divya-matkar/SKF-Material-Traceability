@@ -1189,7 +1189,7 @@ const NodeCard = ({
       </datalist>
       
       <div className="ac-header">
-        <h1 className="ac-title">Channel Enteries</h1>
+        <h1 className="ac-title">Afterchannel Processing</h1>
         <div className="tab-buttons">
           {['transitbuffer','channel','accurate', 'cps', 'rework', 'dismantling', 'autopackaging', 'fps'].map(tab => (
             <button
