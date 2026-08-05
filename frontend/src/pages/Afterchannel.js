@@ -12,9 +12,15 @@ const API = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
  
 const Afterchannel = () => {
   console.log("AFTERCHANNEL FILE LOADED");
-  const [activeTab, setActiveTab] = useState(
-  localStorage.getItem("activeTab") || "accurate"
-  );
+
+  const userRole = sessionStorage.getItem("role");
+
+  const defaultTab =
+    userRole === "user"
+      ? (localStorage.getItem("activeTab") || "summary")
+      : userRole;
+
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [entryMode, setEntryMode] = useState('IN'); 
   const [moCache, setMoCache] = useState({});
   const [ledgers, setLedgers] = useState({  transitbuffer: [], channel: [], accurate: [], cps: [], rework: [], dismantling: [], autopackaging: [], fps: [] });
@@ -24,11 +30,38 @@ const Afterchannel = () => {
   const [scrapSearchQuery, setScrapSearchQuery] = useState('');
   const [expandedScrapMOs, setExpandedScrapMOs] = useState({});
   const [expandedScrapReasons, setExpandedScrapReasons] = useState({});
+  const [productionEntries, setProductionEntries] = useState([]);
 
   const [moNumber, setMoNumber] = useState('');
   const [selectedVariant, setSelectedVariant] = useState('');
   const [actualProductionQty, setActualProductionQty] = useState(0);
-  
+  const [selectedMO, setSelectedMO] = useState(null);
+
+  const roleTabs = {
+    user: [
+      "transitbuffer",
+      "channel",
+      "accurate",
+      "cps",
+      "rework",
+      "dismantling",
+      "autopackaging",
+      "fps",
+      "summary",
+      "visualFlow",
+      "scrapData",
+    ],
+
+    transitbuffer: ["transitbuffer"],
+    channel: ["channel"],
+    accurate: ["accurate"],
+    cps: ["cps"],
+    rework: ["rework"],
+    dismantling: ["dismantling"],
+    autopackaging: ["autopackaging"],
+    fps: ["fps"],
+  };
+
   const [editingRecord, setEditingRecord] = useState(null);
   const [ledgerSearchQuery, setLedgerSearchQuery] = useState('');
  
@@ -158,7 +191,7 @@ const Afterchannel = () => {
       window.removeEventListener("resize", updateScale);
     };
   }, []);
- 
+  
   const fetchMasterData = async () => {
     try {
       const res = await fetch(`${API}/api/mo-lookup`);
@@ -287,40 +320,66 @@ const Afterchannel = () => {
   setGrossWeight(280);
   };
 
-  const handleChannelSave = () => {
-  const newEntry = {
-    id: Date.now(),
+  const handleChannelSave = (formData) => {
+    const newEntry = {
+      id: Date.now(),
 
-    mo: moNumber,
-    bearing_type: selectedVariant,
+      mo: moNumber,
+      bearing_type: selectedVariant,
 
-    in_date: new Date().toLocaleDateString(),
+      type: formData.type,
+      pack_code: formData.packCode,
 
-    material_in_from: "CHANNEL",
+      in_date: new Date().toLocaleDateString(),
 
-    qty_in: finalQty,
+      material_in_from: "CHANNEL",
 
-    gross_weight: grossWeight,
-    tare_weight: tareWeight,
-    net_weight: netWeight,
+      qty_in: Number(formData.requiredQty),
+      qty_sent: Number(formData.producedQty),
 
-    sample_weight: sampleWeight,
+      gross_weight: grossWeight,
+      tare_weight: tareWeight,
+      net_weight: netWeight,
 
-    next_station: "PENDING",
+      sample_weight: sampleWeight,
 
-    qty_sent: 0
-  };
+      next_station: "PENDING",
 
-  setLedgers(prev => ({
-  ...prev,
-  channel: [
-    newEntry,
-    ...(prev.channel || [])
-  ]
-}));
+    };
 
-  console.log("Saved Entry:", newEntry);
-};
+    setLedgers(prev => ({
+      ...prev,
+      channel: [
+        newEntry,
+        ...(prev.channel || [])
+      ]
+    }));
+
+    console.log("Saved Entry:", newEntry);
+
+    setProductionEntries(prev => [
+      ...prev,
+      {
+        id: Date.now(),
+        mo: moNumber,
+        variant: selectedVariant,
+        packCode: formData.packCode,
+        requiredQty: formData.requiredQty,
+        producedQty: formData.producedQty
+      }
+    ]);
+
+    setSelectedMO(newEntry);
+
+        return newEntry;   // <-- ADD THIS LINE
+      };
+
+      const updateChannelData = (updatedChannel) => {
+        setLedgers(prev => ({
+          ...prev,
+          channel: updatedChannel
+        }));
+      };
 
  const handleTransitSave = () => {
 
@@ -491,13 +550,19 @@ const Afterchannel = () => {
       throw new Error(`HTTP Error ${response.status}`);
   }
       
-      alert(editingRecord ? "Entry Updated Successfully!" : "Operational Record Logged Successfully!");
+      if (endpoint !== "channel") {
+        alert(
+          editingRecord
+            ? "Entry Updated Successfully!"
+            : "Operational Record Logged Successfully!"
+        );
+
+        await fetchLedgers();
+      }
+
       e.target.reset();
       setEditingRecord(null);
       resetComponentScrapStates();
-      if (endpoint !== 'channel') {
-  await fetchLedgers();
-}
     } catch (err) {
       alert("Submission Error: " + err.message);
     }
@@ -733,63 +798,10 @@ const Afterchannel = () => {
   );
 }
 
-if (deptKey === "channel") {
+    if (deptKey === "channel") {
+        return null;
+    }
 
-  if (records.length === 0) {
-    return (
-      <div className="ledger-empty-card">
-        <div className="ledger-empty-header">
-          <span className="ledger-empty-title">
-            CHANNEL - Global Entry Log
-          </span>
-        </div>
-        No entries found.
-      </div>
-    );
-  }
-
-  return (
-    <div className="ledger-card">
-
-      <div className="ledger-card-header">
-        <span>CHANNEL - Global Entry Log</span>
-      </div>
-
-      <div className="table-scroll">
-        <table className="data-table">
-
-          <thead>
-            <tr>
-              <th>MO</th>
-              <th>Variant</th>
-              <th>Gross Wt</th>
-              <th>Tare Wt</th>
-              <th>Net Wt</th>
-              <th>Sample Wt</th>
-              <th>Final Qty</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {records.map((r, i) => (
-              <tr key={i}>
-                <td>{r.mo || "-"}</td>
-                <td>{r.bearing_type || "-"}</td>
-                <td>{r.gross_weight || "-"}</td>
-                <td>{r.tare_weight || "-"}</td>
-                <td>{r.net_weight || "-"}</td>
-                <td>{r.sample_weight || "-"}</td>
-                <td>{r.qty_in || "-"}</td>
-              </tr>
-            ))}
-          </tbody>
-
-        </table>
-      </div>
-
-    </div>
-  );
-}
     if (records.length === 0) return (
       <div className="ledger-empty-card">
         <div className="ledger-empty-header">
@@ -1177,7 +1189,7 @@ const NodeCard = ({
   };
  
   return (
-    <div className="afterchannel-container">
+    <div className="afterchannel-container">         
       <datalist id="depts-list"><option value="Channel" /><option value="Accurate" /><option value="CPS" /><option value="Rework" /><option value="Dismantling" /><option value="Autopackaging" /><option value="FPS" /><option value="Scrap" /></datalist>
       <datalist id="channels-list">
         {['CH01','CH02','CH03','CH04','CH05','CH06','CH07','CH08','T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12'].map(ch => <option key={ch} value={ch} />)}
@@ -1191,37 +1203,108 @@ const NodeCard = ({
       
       <div className="ac-header">
         <h1 className="ac-title">Afterchannel Processing</h1>
-        <div className="tab-buttons">
-          {['transitbuffer','channel','accurate', 'cps', 'rework', 'dismantling', 'autopackaging', 'fps'].map(tab => (
-            <button
-              key={tab}
-              className={`tab-pill tab-pill-${tab} ${activeTab === tab ? 'tab-pill-active' : ''}`}
-              onClick={() => {setActiveTab(tab); setEditingRecord(null); setLedgerSearchQuery(''); setBearingFamily(''); resetComponentScrapStates();}}
-            >
-              {tab === 'transitbuffer'
-                ? 'TRANSIT BUFFER'
-                : tab.toUpperCase()}
-            </button>
-          ))}
+      <div className="tab-buttons">
+
+        {roleTabs[userRole]?.includes("transitbuffer") && (
           <button
-            className={`tab-pill tab-pill-summary ${activeTab === 'summary' ? 'tab-pill-active' : ''}`}
-            onClick={() => setActiveTab('summary')}
+            className={`tab-pill ${activeTab === "transitbuffer" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("transitbuffer")}
+          >
+            TRANSIT BUFFER
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("channel") && (
+          <button
+            className={`tab-pill ${activeTab === "channel" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("channel")}
+          >
+            CHANNEL
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("accurate") && (
+          <button
+            className={`tab-pill ${activeTab === "accurate" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("accurate")}
+          >
+            ACCURATE
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("cps") && (
+          <button
+            className={`tab-pill ${activeTab === "cps" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("cps")}
+          >
+            CPS
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("rework") && (
+          <button
+            className={`tab-pill ${activeTab === "rework" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("rework")}
+          >
+            REWORK
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("dismantling") && (
+          <button
+            className={`tab-pill ${activeTab === "dismantling" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("dismantling")}
+          >
+            DISMANTLING
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("autopackaging") && (
+          <button
+            className={`tab-pill ${activeTab === "autopackaging" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("autopackaging")}
+          >
+            AUTOPACKAGING
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("fps") && (
+          <button
+            className={`tab-pill ${activeTab === "fps" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("fps")}
+          >
+            FPS
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("summary") && (
+          <button
+            className={`tab-pill ${activeTab === "summary" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("summary")}
           >
             📊 SUMMARY
           </button>
+        )}
+
+        {roleTabs[userRole]?.includes("visualFlow") && (
           <button
-            className={`tab-pill ${activeTab === 'visualFlow' ? 'tab-pill-active' : ''}`}
-            onClick={() => setActiveTab('visualFlow')}
+            className={`tab-pill ${activeTab === "visualFlow" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("visualFlow")}
           >
             📈 VISUAL FLOW
           </button>
+        )}
+
+        {roleTabs[userRole]?.includes("scrapData") && (
           <button
-            className={`tab-pill tab-pill-scrap ${activeTab === 'scrapData' ? 'tab-pill-active' : ''}`}
-            onClick={() => setActiveTab('scrapData')}
+            className={`tab-pill ${activeTab === "scrapData" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("scrapData")}
           >
             🗑️ SCRAP DATA
           </button>
-        </div>
+        )}
+
+      </div>
       </div>
  
       {activeTab !== 'summary' && activeTab !== 'visualFlow' && activeTab !== 'scrapData' &&  activeTab !== 'channel' && activeTab !== 'transitbuffer' && (
@@ -1266,17 +1349,40 @@ const NodeCard = ({
       )}
  
       <div className="ac-content">
-        {['transitbuffer', 'channel', 'accurate', 'cps', 'rework', 'autopackaging', 'fps'].includes(activeTab) && (
-          <div>
+       {activeTab === "channel" ? (
+          <ChannelDashboard
+            moNumber={moNumber}
+            setMoNumber={setMoNumber}
+            handleMoBlur={handleMoBlur}
+            dynamicMosList={dynamicMosList}
+            selectedVariant={selectedVariant}
+            setSelectedVariant={setSelectedVariant}
+            handleVariantChange={handleVariantChange}
+            dynamicVariantsList={dynamicVariantsList}
+            handleChannelSave={handleChannelSave}
+            channelData={ledgers.channel}
+            updateChannelData={updateChannelData}
+            selectedMO={selectedMO}
+            setSelectedMO={setSelectedMO}
+            productionEntries={productionEntries}
+            setProductionEntries={setProductionEntries}
+          />
+        ) : (
+          ['transitbuffer', 'accurate', 'cps', 'rework', 'autopackaging', 'fps'].includes(activeTab) && (
+            <div>
             <form key={editingRecord ? editingRecord.id : 'new'} onSubmit={(e) => handleFormSubmit(e, activeTab)}>
               <fieldset className={`form-fieldset ${entryMode === 'OUT' ? 'form-fieldset-out' : ''}`}>
-              <div className="form-card-title">
-                  {activeTab === 'channel'
-                    ? 'CHANNEL ENTRY'
-                    : activeTab === 'transitbuffer'
-                    ? 'TRANSIT BUFFER ENTRY'
-                    : `${activeTab.toUpperCase()} - ${entryMode === 'IN' ? 'Receiving Log' : 'Dispatch Log'}`
-                  }
+              <div className="form-card-title-wrapper">
+                <div className="form-card-title">
+                  {activeTab !== "channel" && (
+                    <div className="form-card-title">
+                      {activeTab === 'transitbuffer'
+                        ? 'TRANSIT BUFFER ENTRY'
+                        : `${activeTab.toUpperCase()} - ${entryMode === 'IN' ? 'Receiving Log' : 'Dispatch Log'}`
+                      }
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="form-card-body">
 
@@ -1403,7 +1509,7 @@ const NodeCard = ({
                                     Include Pallet (7.1 kg)
                                   </label>
 
-                                  <div style={{ paddingTop: "12px" }}>
+                                  <div className="checkbox-wrapper">
                                     <input
                                       type="checkbox"
                                       checked={tbPallet}
@@ -1523,10 +1629,6 @@ const NodeCard = ({
 
                         </div>
 
-                        ) : activeTab === 'channel' ? (
-
-                          <ChannelDashboard />
-                                 
                         ) : activeTab === 'fps' ? (
 
                           <div className="field-group"><label className="field-label">Customer Order</label><input type="text" name="customerOrder" defaultValue={editingRecord?.customer_order || ''} className="field-input" required/></div>
@@ -1602,7 +1704,8 @@ const NodeCard = ({
             </form>
             {renderDepartmentLedger(activeTab, activeTab.toUpperCase())}
           </div>
-        )}
+          )
+      )}
  
         {activeTab === 'dismantling' && (
           <div>

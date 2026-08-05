@@ -17,32 +17,40 @@ function Login() {
   }, []);
 
   const handleLogin = async () => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+  try {
+    const response = await fetch(`${API_BASE_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (response.ok) {
-        sessionStorage.setItem("token", data.access_token || data.token);
-        sessionStorage.setItem("role", data.role || "admin");
+    if (response.ok) {
+      const role = data.role || "user";
 
+      sessionStorage.setItem("token", data.access_token || data.token);
+      sessionStorage.setItem("role", role);
+
+      if (role === "user") {
         navigate("/dashboard");
       } else {
-        alert(data.detail || "Invalid email or password");
+        navigate("/afterchannel");
       }
-    } catch (error) {
-      alert("Error connecting to server");
+
+    } else {
+      alert(data.detail || "Invalid email or password");
     }
-  };
+
+  } catch (error) {
+    alert("Error connecting to server");
+  }
+};
 
  return (
   <div className="login-page">

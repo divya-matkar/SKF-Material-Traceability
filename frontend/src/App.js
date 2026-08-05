@@ -22,11 +22,28 @@ import SHOScheduling from "./pages/SHOScheduling";
 
 
 // 🔒 THE BOUNCER
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+
   const token = sessionStorage.getItem("token");
+  const role = sessionStorage.getItem("role");
+
   if (!token) {
     return <Navigate to="/" replace />;
   }
+
+  // Admin can access everything
+  if (role === "admin") {
+    return children;
+  }
+
+  // Check if current role is allowed
+  if (
+    allowedRoles.length > 0 &&
+    !allowedRoles.includes(role)
+  ) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return children;
 };
 
@@ -45,7 +62,7 @@ function App() {
         <Route path="/traceability" element={<ProtectedRoute><Traceability /></ProtectedRoute>} />
         <Route path="/tbe" element={<ProtectedRoute><TBE /></ProtectedRoute>} /> 
         <Route path="/scrap" element={<ProtectedRoute><Scrap /></ProtectedRoute>} /> 
-        <Route path="/afterchannel" element={<ProtectedRoute><Afterchannel /></ProtectedRoute>} /> 
+        <Route path="/afterchannel" element={<Afterchannel />}/>
         <Route path="/sho_scheduling" element={<ProtectedRoute><SHOScheduling /></ProtectedRoute>} />   
           
 

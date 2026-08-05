@@ -3,9 +3,9 @@
 ================================= */
 
 .channel-dashboard {
-    padding: 30px;
     background: #eef3f8;
-    min-height: 100vh;
+    min-height: calc(100vh - 90px);
+    padding: 20px 24px;
 }
 
 /* ===============================
@@ -41,21 +41,36 @@
     font-weight:700;
 }
 
-.new-mo-btn{
-    background:#2563eb;
-    color:white;
-    border:none;
-    padding:12px 24px;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:600;
-    font-size:15px;
+.channel-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-.new-mo-btn:hover{
-    background:#1d4ed8;
+.channel-page-header h1 {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 700;
+    color: #2563eb;
+
 }
 
+.new-mo-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.new-mo-btn:hover {
+  background: #1d4ed8;
+}
 /* ===============================
    Form
 ================================= */
@@ -224,4 +239,149 @@
         align-items:flex-start;
     }
 
+}
+.selected-actions{
+    display:flex;
+    gap:14px;
+    margin:20px 0;
+}
+
+.add-production-btn {
+    background: #20A547;
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.add-production-btn:hover {
+    background: #1b9440;
+}
+
+.new-entry-btn {
+    background: #4B44E0;
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.new-entry-btn:hover {
+    background: #4038d3;
+}
+
+.edit-entry-btn {
+    background: #B35A12;
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.edit-entry-btn:hover {
+    background: #9d4f10;
+}
+
+.remove-btn{
+    background:#fee2e2;
+    color:#dc2626;
+    border:none;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.production-table input{
+    width:100%;
+    padding:10px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    box-sizing:border-box;
+}
+
+/* ===========================
+   Add Production Modal
+=========================== */
+
+.production-modal-overlay{
+    position: fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+
+.production-modal{
+    width:380px;
+    background:#fff;
+    border-radius:14px;
+    padding:24px;
+    box-shadow:0 25px 60px rgba(0,0,0,.25);
+}
+
+.production-modal h3{
+    margin:0 0 20px;
+    font-size:28px;
+    font-weight:700;
+}
+
+.production-modal label{
+    display:block;
+    margin-bottom:6px;
+    margin-top:14px;
+    font-weight:600;
+    color:#374151;
+}
+
+.production-modal select,
+.production-modal input{
+    width:100%;
+    height:44px;
+    padding:0 12px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    font-size:15px;
+    box-sizing:border-box;
+}
+
+.modal-buttons{
+    display:flex;
+    justify-content:flex-end;
+    gap:12px;
+    margin-top:24px;
+}
+
+.modal-buttons button{
+    border:none;
+    padding:10px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.modal-buttons button:first-child{
+    background:#94a3b8;
+    color:white;
+}
+
+.modal-buttons button:last-child{
+    background:#16a34a;
+    color:white;
 }
