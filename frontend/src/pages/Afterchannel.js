@@ -22,6 +22,12 @@ const Afterchannel = () => {
     ],
     transitbuffer: ["transitbuffer"],
     channel: ["channel"],
+    accurate: ["accurate"],
+    cps: ["cps"],
+    rework: ["rework"],
+    dismantling: ["dismantling"],
+    autopackaging: ["autopackaging"],
+    fps: ["fps"],
   };
 
   const mainStationTabs = [
@@ -523,61 +529,103 @@ const Afterchannel = () => {
         <h1 className="ac-title">Afterchannel Processing</h1>
         <div className="tab-buttons">
           {roleTabs[userRole]?.includes("transitbuffer") && (
-            <button
-              className={`tab-pill ${activeTab === "transitbuffer" ? "tab-pill-active" : ""}`}
-              onClick={() => handleTabChange("transitbuffer")}
-            >
-              TRANSIT BUFFER
-            </button>
-          )}
+          <button
+            className={`tab-pill ${activeTab === "transitbuffer" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("transitbuffer")}
+          >
+            TRANSIT BUFFER
+          </button>
+        )}
 
-          {roleTabs[userRole]?.includes("channel") && (
-            <button
-              className={`tab-pill ${activeTab === "channel" ? "tab-pill-active" : ""}`}
-              onClick={() => handleTabChange("channel")}
-            >
-              CHANNEL
-            </button>
-          )}
+        {roleTabs[userRole]?.includes("channel") && (
+          <button
+            className={`tab-pill ${activeTab === "channel" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("channel")}
+          >
+            CHANNEL
+          </button>
+        )}
 
-          {mainStationTabs.map((tab) => (
-            roleTabs[userRole]?.includes(tab.id) && (
-              <button
-                key={tab.id}
-                className={`tab-pill ${activeTab === tab.id ? "tab-pill-active" : ""}`}
-                onClick={() => handleTabChange(tab.id)}
-              >
-                {tab.label}
-              </button>
-            )
-          ))}
+        {roleTabs[userRole]?.includes("accurate") && (
+          <button
+            className={`tab-pill ${activeTab === "accurate" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("accurate")}
+          >
+            ACCURATE
+          </button>
+        )}
 
-          {roleTabs[userRole]?.includes("summary") && (
-            <button
-              className={`tab-pill ${activeTab === "summary" ? "tab-pill-active" : ""}`}
-              onClick={() => handleTabChange("summary")}
-            >
-              📊 SUMMARY
-            </button>
-          )}
+        {roleTabs[userRole]?.includes("cps") && (
+          <button
+            className={`tab-pill ${activeTab === "cps" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("cps")}
+          >
+            CPS
+          </button>
+        )}
 
-          {roleTabs[userRole]?.includes("visualFlow") && (
-            <button
-              className={`tab-pill ${activeTab === "visualFlow" ? "tab-pill-active" : ""}`}
-              onClick={() => handleTabChange("visualFlow")}
-            >
-              📈 VISUAL FLOW
-            </button>
-          )}
+        {roleTabs[userRole]?.includes("rework") && (
+          <button
+            className={`tab-pill ${activeTab === "rework" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("rework")}
+          >
+            REWORK
+          </button>
+        )}
 
-          {roleTabs[userRole]?.includes("scrapData") && (
-            <button
-              className={`tab-pill tab-pill-scrap ${activeTab === "scrapData" ? "tab-pill-active" : ""}`}
-              onClick={() => handleTabChange("scrapData")}
-            >
-              🗑️ SCRAP DATA
-            </button>
-          )}
+        {roleTabs[userRole]?.includes("dismantling") && (
+          <button
+            className={`tab-pill ${activeTab === "dismantling" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("dismantling")}
+          >
+            DISMANTLING
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("autopackaging") && (
+          <button
+            className={`tab-pill ${activeTab === "autopackaging" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("autopackaging")}
+          >
+            AUTOPACKAGING
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("fps") && (
+          <button
+            className={`tab-pill ${activeTab === "fps" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("fps")}
+          >
+            FPS
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("summary") && (
+          <button
+            className={`tab-pill ${activeTab === "summary" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("summary")}
+          >
+            📊 SUMMARY
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("visualFlow") && (
+          <button
+            className={`tab-pill ${activeTab === "visualFlow" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("visualFlow")}
+          >
+            📈 VISUAL FLOW
+          </button>
+        )}
+
+        {roleTabs[userRole]?.includes("scrapData") && (
+          <button
+            className={`tab-pill ${activeTab === "scrapData" ? "tab-pill-active" : ""}`}
+            onClick={() => setActiveTab("scrapData")}
+          >
+            🗑️ SCRAP DATA
+          </button>
+        )}
         </div>
       </div>
 
