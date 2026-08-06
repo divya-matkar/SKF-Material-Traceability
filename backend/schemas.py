@@ -48,3 +48,16 @@ class OrderResponse(BaseModel):
 
     class Config:
         from_attributes = True
+        
+# ================= CHANNEL SCHEMAS =================
+
+class ChannelEntry(BaseModel):
+    date: str
+    mo: str
+    variant: str
+    type: str
+    packCode: Optional[str] = None
+    shift: str
+    station: str
+    requiredQty: int
+    producedQty: int
