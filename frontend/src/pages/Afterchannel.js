@@ -11,22 +11,40 @@ const Afterchannel = () => {
 
   const defaultTab =
     userRole === "user"
-      ? (localStorage.getItem("activeTab") || "transitbuffer")
+      ? (localStorage.getItem("activeTab") || "accurate")
       : userRole;
 
   const roleTabs = {
-    user: ["transitbuffer", "channel", "summary", "visualFlow", "scrapData"],
+    user: [
+      "transitbuffer", "channel", "accurate", "autopackaging", 
+      "cps", "fps", "rework", "dismantling", 
+      "summary", "visualFlow", "scrapData"
+    ],
     transitbuffer: ["transitbuffer"],
     channel: ["channel"],
   };
 
+  const mainStationTabs = [
+    { id: "accurate", label: "Accurate" },
+    { id: "autopackaging", label: "Auto Packaging" },
+    { id: "cps", label: "CPS" },
+    { id: "fps", label: "FPS" },
+    { id: "rework", label: "Rework" },
+    { id: "dismantling", label: "Dismantling" }
+  ];
+
+  const stationOptions = [
+     "Channel", "Accurate", "Auto Packaging", "CPS", "FPS", "Rework", "Dismantling"
+  ];
+
   const [activeTab, setActiveTab] = useState(defaultTab);
+  const [subView, setSubView] = useState('IN'); // 'IN' or 'OUT'
+
   const [moCache, setMoCache] = useState({});
   const [ledgers, setLedgers] = useState({
     channel: [], accurate: [], cps: [], rework: [], dismantling: [], autopackaging: [], fps: [], transitbuffer: []
   });
 
-  // Scrap State 
   const [scrapData, setScrapData] = useState([]);
   const [scrapSearchQuery, setScrapSearchQuery] = useState('');
   const [expandedScrapMOs, setExpandedScrapMOs] = useState({});
@@ -55,6 +73,30 @@ const Afterchannel = () => {
   const [tbStdQty, setTbStdQty] = useState(0);
   const [tbFinalQty, setTbFinalQty] = useState(0);
 
+  // Form States for Station IN View with QTY RECEIVED
+  const [inFormData, setInFormData] = useState({
+    date: new Date().toISOString().split('T')[0], 
+    moNumber: '', 
+    type: '', 
+    variant: '', 
+    packCode: '', 
+    shift: '', 
+    station: '',
+    qtyReceived: ''
+  });
+
+  // Form States for Station OUT View
+  const [outFormData, setOutFormData] = useState({
+    moNumber: '', 
+    type: '', 
+    variant: '', 
+    packCode: '', 
+    shiftOut: '', 
+    nextStation: '', 
+    qtySent: '', 
+    outDate: new Date().toISOString().split('T')[0]
+  });
+
   useEffect(() => {
     fetchMasterData();
     fetchLedgers();
@@ -69,6 +111,11 @@ const Afterchannel = () => {
   useEffect(() => {
     localStorage.setItem("activeTab", activeTab);
   }, [activeTab]);
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setSubView('IN');
+  };
 
   const fetchMasterData = async () => {
     try {
@@ -150,6 +197,99 @@ const Afterchannel = () => {
 
   const handleVariantChange = (e) => {
     setSelectedVariant(e.target.value.toUpperCase());
+  };
+
+  const handleInInputChange = (e) => {
+    const { name, value } = e.target;
+    setInFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleOutInputChange = (e) => {
+    const { name, value } = e.target;
+    setOutFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // ================= CORE ROUTING & AUTOMATED HANDOVER ENGINE =================
+  const handleStationFormSubmit = async (e) => {
+    e.preventDefault();
+    const sourceStation = activeTab;
+
+    if (subView === 'IN') {
+      const inEntry = {
+        id: Date.now(),
+        moNumber: inFormData.moNumber,
+        mo: inFormData.moNumber,
+        type: inFormData.type,
+        variant: inFormData.variant,
+        packCode: inFormData.packCode,
+        shift: inFormData.shift,
+        station: inFormData.station || sourceStation,
+        date: inFormData.date,
+        in_date: inFormData.date,
+        qty_in: Number(inFormData.qtyReceived) || 0,
+        qtyReceived: Number(inFormData.qtyReceived) || 0,
+        material_in_from: inFormData.station || "MANUAL_ENTRY",
+        viewMode: 'IN'
+      };
+
+      setLedgers(prev => ({
+        ...prev,
+        [sourceStation]: [inEntry, ...(prev[sourceStation] || [])]
+      }));
+
+      alert(`"IN" Record saved successfully for ${sourceStation.toUpperCase()}`);
+      setInFormData({ date: new Date().toISOString().split('T')[0], moNumber: '', type: '', variant: '', packCode: '', shift: '', station: '', qtyReceived: '' });
+
+    } else {
+      const targetStation = outFormData.nextStation.toLowerCase().replace(/\s+/g, '');
+
+      const outEntry = {
+        id: Date.now(),
+        moNumber: outFormData.moNumber,
+        mo: outFormData.moNumber,
+        type: outFormData.type,
+        variant: outFormData.variant,
+        packCode: outFormData.packCode,
+        shift_out: outFormData.shiftOut,
+        next_station: outFormData.nextStation,
+        qty_sent: Number(outFormData.qtySent) || 0,
+        out_date: outFormData.outDate,
+        viewMode: 'OUT'
+      };
+
+      const handoverInEntry = {
+        id: Date.now() + 1,
+        moNumber: outFormData.moNumber,
+        mo: outFormData.moNumber,
+        type: outFormData.type,
+        variant: outFormData.variant,
+        packCode: outFormData.packCode,
+        shift: outFormData.shiftOut,
+        station: targetStation,
+        date: outFormData.outDate,
+        in_date: outFormData.outDate,
+        qty_in: Number(outFormData.qtySent) || 0,
+        qtyReceived: Number(outFormData.qtySent) || 0,
+        material_in_from: sourceStation.toUpperCase(),
+        viewMode: 'IN'
+      };
+
+      setLedgers(prev => {
+        const updatedSource = [outEntry, ...(prev[sourceStation] || [])];
+        const updatedTarget = prev[targetStation] 
+          ? [handoverInEntry, ...(prev[targetStation])]
+          : (prev[targetStation] || []);
+
+        return {
+          ...prev,
+          [sourceStation]: updatedSource,
+          ...(prev[targetStation] !== undefined && { [targetStation]: updatedTarget })
+        };
+      });
+
+      alert(`"OUT" Record logged at ${sourceStation.toUpperCase()} & auto-transferred as "IN" record to ${outFormData.nextStation.toUpperCase()}!`);
+      setOutFormData({ moNumber: '', type: '', variant: '', packCode: '', shiftOut: '', nextStation: '', qtySent: '', outDate: new Date().toISOString().split('T')[0] });
+    }
   };
 
   const handleChannelSave = (formData) => {
@@ -358,6 +498,17 @@ const Afterchannel = () => {
     return list.sort((a, b) => a.mo.localeCompare(b.mo));
   };
 
+  const isStationTab = mainStationTabs.some(t => t.id === activeTab);
+  const currentTabLabel = mainStationTabs.find(t => t.id === activeTab)?.label || activeTab.toUpperCase();
+
+  const currentStationRecords = (ledgers[activeTab] || []).filter(r => {
+    if (subView === 'IN') {
+      return r.viewMode === 'IN' || r.qty_in > 0 || (!r.qty_sent && !r.viewMode);
+    } else {
+      return r.viewMode === 'OUT' || r.qty_sent > 0;
+    }
+  });
+
   return (
     <div className="afterchannel-container">         
       <datalist id="mo-list">
@@ -367,13 +518,14 @@ const Afterchannel = () => {
         {dynamicVariantsList.map(v => <option key={v} value={v} />)}
       </datalist>
       
+      {/* HEADER & TAB NAVIGATION */}
       <div className="ac-header">
         <h1 className="ac-title">Afterchannel Processing</h1>
         <div className="tab-buttons">
           {roleTabs[userRole]?.includes("transitbuffer") && (
             <button
               className={`tab-pill ${activeTab === "transitbuffer" ? "tab-pill-active" : ""}`}
-              onClick={() => setActiveTab("transitbuffer")}
+              onClick={() => handleTabChange("transitbuffer")}
             >
               TRANSIT BUFFER
             </button>
@@ -382,16 +534,28 @@ const Afterchannel = () => {
           {roleTabs[userRole]?.includes("channel") && (
             <button
               className={`tab-pill ${activeTab === "channel" ? "tab-pill-active" : ""}`}
-              onClick={() => setActiveTab("channel")}
+              onClick={() => handleTabChange("channel")}
             >
               CHANNEL
             </button>
           )}
 
+          {mainStationTabs.map((tab) => (
+            roleTabs[userRole]?.includes(tab.id) && (
+              <button
+                key={tab.id}
+                className={`tab-pill ${activeTab === tab.id ? "tab-pill-active" : ""}`}
+                onClick={() => handleTabChange(tab.id)}
+              >
+                {tab.label}
+              </button>
+            )
+          ))}
+
           {roleTabs[userRole]?.includes("summary") && (
             <button
               className={`tab-pill ${activeTab === "summary" ? "tab-pill-active" : ""}`}
-              onClick={() => setActiveTab("summary")}
+              onClick={() => handleTabChange("summary")}
             >
               📊 SUMMARY
             </button>
@@ -400,7 +564,7 @@ const Afterchannel = () => {
           {roleTabs[userRole]?.includes("visualFlow") && (
             <button
               className={`tab-pill ${activeTab === "visualFlow" ? "tab-pill-active" : ""}`}
-              onClick={() => setActiveTab("visualFlow")}
+              onClick={() => handleTabChange("visualFlow")}
             >
               📈 VISUAL FLOW
             </button>
@@ -408,8 +572,8 @@ const Afterchannel = () => {
 
           {roleTabs[userRole]?.includes("scrapData") && (
             <button
-              className={`tab-pill ${activeTab === "scrapData" ? "tab-pill-active" : ""}`}
-              onClick={() => setActiveTab("scrapData")}
+              className={`tab-pill tab-pill-scrap ${activeTab === "scrapData" ? "tab-pill-active" : ""}`}
+              onClick={() => handleTabChange("scrapData")}
             >
               🗑️ SCRAP DATA
             </button>
@@ -418,6 +582,7 @@ const Afterchannel = () => {
       </div>
 
       <div className="ac-content">
+        {/* CHANNEL TAB */}
         {activeTab === "channel" && (
           <ChannelDashboard
             moNumber={moNumber}
@@ -438,6 +603,7 @@ const Afterchannel = () => {
           />
         )}
 
+        {/* TRANSIT BUFFER TAB */}
         {activeTab === "transitbuffer" && (
           <TransitBufferDashboard
             moNumber={moNumber}
@@ -470,6 +636,354 @@ const Afterchannel = () => {
           />
         )}
 
+        {/* STATION VIEWS (Accurate, Auto Packaging, CPS, FPS, Rework, Dismantling) */}
+        {isStationTab && (
+          <div>
+            <form onSubmit={handleStationFormSubmit}>
+              <fieldset className={`form-fieldset ${subView === 'OUT' ? 'form-fieldset-out' : ''}`}>
+                <div className="form-card-header-bar">
+                  <div className="form-card-title">
+                    {currentTabLabel.toUpperCase()} — {subView === 'IN' ? 'IN (RECEIVING)' : 'OUT (DISPATCH)'}
+                  </div>
+                  <div className="sub-nav-toggle">
+                    <button
+                      type="button"
+                      className={`sub-nav-btn ${subView === 'IN' ? 'sub-nav-btn-active btn-in' : ''}`}
+                      onClick={() => setSubView('IN')}
+                    >
+                      In
+                    </button>
+                    <button
+                      type="button"
+                      className={`sub-nav-btn ${subView === 'OUT' ? 'sub-nav-btn-active btn-out' : ''}`}
+                      onClick={() => setSubView('OUT')}
+                    >
+                      Out
+                    </button>
+                  </div>
+                </div>
+
+                <div className="form-card-body">
+                  {subView === 'IN' ? (
+                    /* IN (RECEIVING) VIEW WITH DROPDOWNS & QTY RECEIVED */
+                    <div className="form-grid-3">
+                      <div className="field-group">
+                        <label className="field-label">Date</label>
+                        <input 
+                          type="date" 
+                          name="date" 
+                          value={inFormData.date} 
+                          onChange={handleInInputChange} 
+                          className="field-input" 
+                          required 
+                        />
+                      </div>
+
+                      <div className="field-group">
+                        <label className="field-label">MO Number</label>
+                        <select 
+                          name="moNumber" 
+                          value={inFormData.moNumber} 
+                          onChange={handleInInputChange} 
+                          className="field-input" 
+                          required
+                        >
+                          <option value="">Select MO Number</option>
+                          {dynamicMosList.map(mo => (
+                            <option key={mo} value={mo}>{mo}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="field-group">
+                        <label className="field-label">Type</label>
+                        <select 
+                          name="type" 
+                          value={inFormData.type} 
+                          onChange={handleInInputChange} 
+                          className="field-input"
+                        >
+                          <option value="">Select Type</option>
+                          <option value="Ring WT">Ring WT</option>
+                          <option value="MO Data">MO Data</option>
+                          <option value="Standard">Standard</option>
+                        </select>
+                      </div>
+
+                      <div className="field-group">
+                        <label className="field-label">Variant</label>
+                        <select 
+                          name="variant" 
+                          value={inFormData.variant} 
+                          onChange={handleInInputChange} 
+                          className="field-input"
+                        >
+                          <option value="">Select Variant</option>
+                          {dynamicVariantsList.map(variant => (
+                            <option key={variant} value={variant}>{variant}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="field-group">
+                        <label className="field-label">Pack Code</label>
+                        <select 
+                          name="packCode" 
+                          value={inFormData.packCode} 
+                          onChange={handleInInputChange} 
+                          className="field-input"
+                        >
+                          <option value="">Select Pack Code</option>
+                          <option value="PC001">PC001 - Standard Box</option>
+                          <option value="PC002">PC002 - Pallet Box</option>
+                          <option value="PC003">PC003 - Custom Packing</option>
+                        </select>
+                      </div>
+
+                      <div className="field-group">
+                        <label className="field-label">Shift</label>
+                        <select 
+                          name="shift" 
+                          value={inFormData.shift} 
+                          onChange={handleInInputChange} 
+                          className="field-input"
+                        >
+                          <option value="">Select Shift</option>
+                          <option value="1">Shift 1</option>
+                          <option value="2">Shift 2</option>
+                          <option value="3">Shift 3</option>
+                        </select>
+                      </div>
+
+                      <div className="field-group">
+                        <label className="field-label">Station</label>
+                        <select 
+                          name="station" 
+                          value={inFormData.station} 
+                          onChange={handleInInputChange} 
+                          className="field-input"
+                        >
+                          <option value="">Select Station</option>
+                          {stationOptions.map(st => (
+                            <option key={st} value={st}>{st}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="field-group">
+                        <label className="field-label">Qty Received</label>
+                        <input 
+                          type="number" 
+                          name="qtyReceived" 
+                          value={inFormData.qtyReceived} 
+                          onChange={handleInInputChange} 
+                          placeholder="Enter Quantity Received..." 
+                          className="field-input" 
+                          required 
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    /* OUT (DISPATCH) VIEW WITH DROPDOWNS */
+                    <div className="form-grid-3">
+                      <div className="field-group">
+                        <label className="field-label">Date</label>
+                        <input 
+                          type="date" 
+                          name="outDate" 
+                          value={outFormData.outDate} 
+                          onChange={handleOutInputChange} 
+                          className="field-input" 
+                          required 
+                        />
+                      </div>
+                      <div className="field-group">
+                        <label className="field-label">MO Number</label>
+                        <select 
+                          name="moNumber" 
+                          value={outFormData.moNumber} 
+                          onChange={handleOutInputChange} 
+                          className="field-input" 
+                          required
+                        >
+                          <option value="">Select MO Number</option>
+                          {dynamicMosList.map(mo => (
+                            <option key={mo} value={mo}>{mo}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="field-group">
+                        <label className="field-label">Type</label>
+                        <select 
+                          name="type" 
+                          value={outFormData.type} 
+                          onChange={handleOutInputChange} 
+                          className="field-input"
+                        >
+                          <option value="">Select Type</option>
+                          <option value="Ring WT">Ring WT</option>
+                          <option value="MO Data">MO Data</option>
+                          <option value="Standard">Standard</option>
+                        </select>
+                      </div>
+
+                      <div className="field-group">
+                        <label className="field-label">Variant</label>
+                        <select 
+                          name="variant" 
+                          value={outFormData.variant} 
+                          onChange={handleOutInputChange} 
+                          className="field-input"
+                        >
+                          <option value="">Select Variant</option>
+                          {dynamicVariantsList.map(variant => (
+                            <option key={variant} value={variant}>{variant}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="field-group">
+                        <label className="field-label">Pack Code</label>
+                        <select 
+                          name="packCode" 
+                          value={outFormData.packCode} 
+                          onChange={handleOutInputChange} 
+                          className="field-input"
+                        >
+                          <option value="">Select Pack Code</option>
+                          <option value="PC001">PC001 - Standard Box</option>
+                          <option value="PC002">PC002 - Pallet Box</option>
+                          <option value="PC003">PC003 - Custom Packing</option>
+                        </select>
+                      </div>
+
+                       <div className="field-group">
+                        <label className="field-label">Shift</label>
+                        <select 
+                          name="shiftOut" 
+                          value={outFormData.shiftOut} 
+                          onChange={handleOutInputChange} 
+                          className="field-input"
+                        >
+                          <option value="">Select Shift Out</option>
+                          <option value="1">Shift 1</option>
+                          <option value="2">Shift 2</option>
+                          <option value="3">Shift 3</option>
+                        </select>
+                      </div>
+
+                     <div className="field-group">
+                      <label className="field-label">Next Station</label>
+                      <select 
+                        name="nextStation" 
+                        value={outFormData.nextStation} 
+                        onChange={handleOutInputChange} 
+                        className="field-input" 
+                        required
+                      >
+                        <option value="">Select Target Station</option>
+                        {stationOptions.map(st => (
+                          <option key={st} value={st}>{st}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                      <div className="field-group">
+                        <label className="field-label">Qty Sent</label>
+                        <input 
+                          type="number" 
+                          name="qtySent" 
+                          value={outFormData.qtySent} 
+                          onChange={handleOutInputChange} 
+                          placeholder="Enter Quantity Sent..." 
+                          className="field-input" 
+                          required 
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="form-actions">
+                    <button 
+                      type="submit" 
+                      className={`submit-btn ${subView === 'IN' ? 'submit-btn-in' : 'submit-btn-out'}`}
+                    >
+                      {subView === 'IN' ? 'Submit "In" Record' : 'Submit "Out" Handover Record'}
+                    </button>
+                  </div>
+                </div>
+              </fieldset>
+            </form>
+
+            {/* OPERATIONAL LEDGER LOG FOR ACTIVE VIEW (IN / OUT Isolated) */}
+            <div className="ledger-card">
+              <div className="ledger-card-header">
+                <span>{currentTabLabel.toUpperCase()} — {subView === 'IN' ? 'Inbound Receiving Log' : 'Outbound Dispatch Log'}</span>
+                <input 
+                  type="text" 
+                  placeholder="Search Log..." 
+                  value={ledgerSearchQuery} 
+                  onChange={(e) => setLedgerSearchQuery(e.target.value)} 
+                  className="field-input" 
+                  style={{ width: '260px', height: '36px' }} 
+                />
+              </div>
+              <div className="table-scroll">
+                <table className="data-table">
+                  <thead>
+                    {subView === 'IN' ? (
+                      <tr>
+                        <th>MO Number</th>
+                        <th>Type / Variant</th>
+                        <th>Pack Code</th>
+                        <th>Origin Station</th>
+                        <th>Shift</th>
+                        <th>In Date</th>
+                        <th>Qty Received</th>
+                      </tr>
+                    ) : (
+                      <tr>
+                        <th>MO Number</th>
+                        <th>Type / Variant</th>
+                        <th>Pack Code</th>
+                        <th>Target Station</th>
+                        <th>Shift Out</th>
+                        <th>Out Date</th>
+                        <th>Qty Sent</th>
+                      </tr>
+                    )}
+                  </thead>
+                  <tbody>
+                    {currentStationRecords.length > 0 ? (
+                      currentStationRecords
+                        .filter(r => !ledgerSearchQuery || JSON.stringify(r).toLowerCase().includes(ledgerSearchQuery.toLowerCase()))
+                        .map((row, idx) => (
+                          <tr key={idx}>
+                            <td>{row.moNumber || row.mo || '-'}</td>
+                            <td>{row.type || row.variant || '-'}</td>
+                            <td>{row.packCode || row.pack_code || '-'}</td>
+                            <td>{subView === 'IN' ? (row.material_in_from || row.station || '-') : (row.next_station || row.nextStation || '-')}</td>
+                            <td>{subView === 'IN' ? (row.shift || row.shift_in || '-') : (row.shift_out || row.shiftOut || '-')}</td>
+                            <td>{subView === 'IN' ? (row.date || row.in_date || '-') : (row.outDate || row.out_date || '-')}</td>
+                            <td><strong>{subView === 'IN' ? (row.qtyReceived || row.qty_in || row.qtyIn || '-') : (row.qty_sent || row.qtySent || '-')}</strong></td>
+                          </tr>
+                        ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                          No {subView === 'IN' ? 'Inbound' : 'Outbound'} records logged for {currentTabLabel}.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VISUAL FLOW TAB */}
         {activeTab === "visualFlow" && (
           <PVSMFlow
             dynamicMosList={dynamicMosList}
@@ -478,7 +992,7 @@ const Afterchannel = () => {
           />
         )}
 
-        {/* RESTORED FULL HIERARCHY SUMMARY TABLE */}
+        {/* SUMMARY TAB */}
         {activeTab === 'summary' && (
           <div className="summary-view">
             <div className="summary-view-header">
@@ -513,7 +1027,6 @@ const Afterchannel = () => {
                 <tbody>
                   {generateSummaryData().map(moData => (
                     <React.Fragment key={moData.mo}>
-                      {/* LEVEL 0: MO ROW */}
                       <tr
                         onClick={() => setExpandedMOs(p => ({ ...p, [moData.mo]: !p[moData.mo] }))}
                         className={`row-mo ${expandedMOs[moData.mo] ? 'row-mo-expanded' : ''}`}
@@ -536,7 +1049,6 @@ const Afterchannel = () => {
                         const vKey = `${moData.mo}-${variant}`;
                         return (
                           <React.Fragment key={variant}>
-                            {/* LEVEL 1: VARIANT ROW */}
                             <tr
                               onClick={() => setExpandedVariants(p => ({ ...p, [vKey]: !p[vKey] }))}
                               className="row-variant"
@@ -555,7 +1067,6 @@ const Afterchannel = () => {
                               <td className="cell-scrap-total">{vData.totalScrap || '-'}</td>
                             </tr>
                                                         
-                            {/* LEVEL 2: COMPONENT DISPATCH DETAILS */}
                             {expandedVariants[vKey] && (
                               <tr>
                                 <td colSpan="17" style={{ padding: 0 }}>
@@ -567,7 +1078,6 @@ const Afterchannel = () => {
                         );
                       })}
 
-                      {/* MO BOTTOM TOTAL ROW */}
                       {expandedMOs[moData.mo] && (
                         <tr className="row-total">
                           <td className="label-cell">TOTAL FOR {moData.mo}:</td>
@@ -591,6 +1101,7 @@ const Afterchannel = () => {
           </div>
         )}
 
+        {/* SCRAP DATA TAB */}
         {activeTab === 'scrapData' && (
           <div className="summary-view scrap-summary-view">
             <div className="summary-view-header">

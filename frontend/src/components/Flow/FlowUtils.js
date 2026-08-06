@@ -1,4 +1,28 @@
-
+/* ==========================================================
+   SKF P-VSM Flow Engine
+   FlowUtils.js
+ 
+   Same public contract as before (FLOW_STYLES, FLOW_ROUTES,
+   computeConnectionPath) plus a few small additions needed by
+   the Flow Playback Engine (Flow.jsx):
+ 
+     - findEdgeId(fromId, toId)   -> backend-ready lookup
+     - getEdgeById(id)            -> raw FLOW_ROUTES entry
+     - getCardEl(id)              -> exported DOM lookup
+ 
+   Routing is fully hand-crafted per connection id (no auto
+   routing library), orthogonal with rounded 90° bends, and
+   matches the reference screenshot:
+ 
+     - Material trunk runs straight across the top row.
+     - Channel / Bearing "T" branches fan out from one stem.
+     - Scrap routes run their own dedicated rails so they never
+       touch the material lines (long-left / long-middle /
+       vertical / short-right, per the brief).
+     - Return routes are offset from their sibling material
+       branch so the two never overlap.
+========================================================== */
+ 
 import { FLOW_ROUTES } from "./FlowRoutes";
  
 /* ==========================================================

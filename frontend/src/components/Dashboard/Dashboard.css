@@ -1,8 +1,0 @@
-.dashboard-page{
-    width:100%;
-    min-height:calc(100vh - 90px);
-    background:#f5f7fb;
-    overflow:hidden;
-    display:flex;
-    justify-content:center;
-}
