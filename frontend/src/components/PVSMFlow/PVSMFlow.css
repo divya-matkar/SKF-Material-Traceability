@@ -1,0 +1,218 @@
+/* ==========================================================================
+   PVSMFlow.css
+   ========================================================================== */
+
+.pvsm-wrapper {
+  width: 100%;
+  height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fb;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.pvsm-top-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 35px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.pvsm-top-controls .control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pvsm-top-controls label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+}
+
+.pvsm-top-controls select {
+  width: 180px;
+  height: 38px;
+  border: 1px solid #d6dbe5;
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #fff;
+  font-size: 13px;
+  outline: none;
+}
+
+.pvsm-top-controls button {
+  height: 38px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background 0.15s ease;
+}
+
+.pvsm-top-controls button:hover {
+  background: #1d4ed8;
+}
+
+.pvsm-canvas {
+  position: relative;
+  width: 100%;
+  min-width: 1600px;
+  height: 850px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.pvsm-grid {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(190px, 210px)) minmax(140px, 170px) repeat(2, minmax(190px, 210px));
+  column-gap: clamp(15px, 2vw, 35px);
+  row-gap: clamp(70px, 9vh, 100px);
+  justify-content: center;
+  align-items: start;
+  width: max-content;
+  margin: 30px auto 0;
+}
+
+.node-pos-dmstore { grid-column: 1; grid-row: 1; }
+.node-pos-sho { grid-column: 2; grid-row: 1; }
+.node-pos-transit { grid-column: 3; grid-row: 1; }
+.node-pos-channel { grid-column: 4; grid-row: 1; }
+.node-pos-bearingstore { grid-column: 6 / 8; grid-row: 1; justify-self: center; }
+
+.node-pos-cps { grid-column: 3; grid-row: 2; }
+.node-pos-disassembly { grid-column: 4; grid-row: 2; }
+.node-pos-rework { grid-column: 5; grid-row: 2; }
+.node-pos-accurate { grid-column: 6; grid-row: 2; margin-left: 20px; }
+.node-pos-autopacking { grid-column: 7; grid-row: 2; margin-left: 20px; }
+
+.node-pos-legend { grid-column: 1; grid-row: 3; }
+.node-pos-commonscrap { grid-column: 4; grid-row: 3; justify-self: center; }
+.node-pos-fps { grid-column: 6 / span 2; grid-row: 3; display: flex; justify-content: center; }
+
+/* ==========================================================================
+   BLUEPRINT NODE CARDS (Fixes Glow Highlight Overflow)
+   ========================================================================== */
+
+.process-card-blueprint {
+  width: 195px;
+  min-height: 165px;
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+}
+
+.process-card-blueprint:hover {
+  transform: translateY(-2px);
+}
+
+.delta-icon-corner {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  color: #f59e0b;
+  font-size: 13px;
+  z-index: 10;
+}
+
+.card-header-bp { width: 100%; }
+.header-top-row { display: flex; align-items: flex-start; gap: 8px; }
+
+.process-icon-box {
+  width: 28px;
+  height: 28px;
+  background: #eef5ff;
+  color: #2563eb;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.title-wrapper { display: flex; flex-direction: column; min-height: 38px; }
+.process-title { margin: 0; font-size: 13px; font-weight: 700; color: #1e293b; line-height: 1.2; }
+.process-subtitle { margin-top: 2px; font-size: 10px; color: #64748b; font-weight: 500; }
+
+.divider-bp { height: 1px; background: #e2e8f0; margin: 8px 0; }
+.card-body-bp { width: 100%; flex-grow: 1; }
+.metrics-grid { display: flex; justify-content: space-around; align-items: center; }
+.metric-col { display: flex; flex-direction: column; align-items: center; flex: 1; }
+.metric-icon { font-size: 10px; margin-bottom: 2px; }
+
+.incoming-icon { color: #16a34a; }
+.outgoing-icon { color: #2563eb; }
+.scrap-icon { color: #ef4444; }
+
+.metric-label { font-size: 9px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+.metric-value { font-size: 15px; font-weight: 700; line-height: 18px; margin-top: 1px; }
+
+.value-incoming { color: #16a34a; }
+.value-outgoing { color: #2563eb; }
+.value-scrap { color: #ef4444; }
+.metric-unit { font-size: 8px; color: #94a3b8; }
+
+.card-footer-bp { display: flex; justify-content: center; margin-top: 8px; }
+.status-pill-bp { padding: 3px 12px; border-radius: 12px; font-size: 9.5px; font-weight: 600; }
+.pill-not-visited { background: #f1f5f9; color: #64748b; }
+.pill-finished { background: #dcfce7; color: #15803d; }
+
+/* Card Variant Borders */
+.border-dashed { border: 1.5px dashed #93c5fd !important; background: #f0f7ff !important; }
+.border-green { border-top: 3.5px solid #16a34a !important; }
+.border-red { border-top: 3.5px solid #ef4444 !important; background: #fef2f2 !important; }
+
+/* Clean Glow Effect directly on the Card Outline */
+.flow-card-glow-material {
+  border-color: #16a34a !important;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.35) !important;
+}
+
+.flow-card-glow-return {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.35) !important;
+}
+
+.flow-card-glow-scrap {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.35) !important;
+}
+
+/* Legend Box */
+.pvsm-legend {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  width: 200px;
+}
+
+.pvsm-legend h4 { margin: 0 0 12px 0; font-size: 14px; font-weight: 700; color: #1e293b; }
+.pvsm-legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; color: #64748b; font-weight: 500; }
+.pvsm-legend-item:last-child { margin-bottom: 0; }
+.pvsm-legend-line { width: 32px; flex-shrink: 0; }
+
+.line-green { height: 3px; background: #16a34a; border-radius: 2px; }
+.line-red { height: 3px; background: #dc2626; border-radius: 2px; }
+.line-orange-dash { height: 0; border-top: 3px dashed #a855f7; }
